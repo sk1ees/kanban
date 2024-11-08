@@ -39,29 +39,42 @@ const Board = () => {
   const [doneCards, setDoneCards] = useState([]);
 
   useEffect(() => {
-    const fetchCards = async () => {
-      try {
-        const response = await axios.get("http://localhost:8000/cards");
-
-        setCards(response.data);
-
-        const backlog = response.data.filter(
-          (card) => card.column === "backlog"
-        );
-        const todo = response.data.filter((card) => card.column === "todo");
-        const doing = response.data.filter((card) => card.column === "doing");
-        const done = response.data.filter((card) => card.column === "done");
+  const fetchCards = async () => {
+    try {
+        const response = await axios.get("http://localhost:8000/cards", {
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        // Log the response to check the data structure
+        console.log('API Response:', response.data);
+        
+        // Check if response.data is an array
+        const cardsData = Array.isArray(response.data) ? response.data : response.data.data;
+        
+        setCards(cardsData);
+        
+        const backlog = cardsData.filter(card => card.column === "backlog");
+        const todo = cardsData.filter(card => card.column === "todo");
+        const doing = cardsData.filter(card => card.column === "doing");
+        const done = cardsData.filter(card => card.column === "done");
 
         setBacklogCards(backlog);
         setTodoCards(todo);
         setDoingCards(doing);
         setDoneCards(done);
-      } catch (error) {
-        console.error("Error fetching cards:", error);
-      }
-    };
-
-    fetchCards();
+        
+    } catch (error) {
+        // Detailed error logging
+        console.error("Error details:", {
+            message: error.message,
+            response: error.response?.data,
+            status: error.response?.status
+        });
+    }
+};    fetchCards();
   }, []);
 
   return (
