@@ -31,7 +31,7 @@ const Column = ({ title, headingColor, column, cards, setCards }) => {
         }`}
       >
         {filterCards.map((c) => {
-          return <Card key={c.id} {...c} />;
+          return <Card key={c.id} {...c} initialColumn={column}/>;
         })}
 
         <AddCard column={column} setCards={setCards} />
