@@ -186,14 +186,21 @@ const RichTextEditor = ({ content, onUpdate, onSave }) => {
   );
 };
 const Card = ({ title: initialTitle, id, initialColumn, onStatusChange }) => {
+  const [selectedColor, setSelectedColor] = useState('bg-purple-900 text-purple-200');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditingDescription, setIsEditingDescription] = useState(false);
   const [showAddMenu, setShowAddMenu] = useState(false);
-  const [openAccordions, setOpenAccordions] = useState({
+  const [isAddingLabel, setIsAddingLabel] = useState(false);
+  const [newLabelName, setNewLabelName] = useState('');
+  const [labels, setLabels] = useState([
+    { id: 1, name: 'bug', color: 'bg-red-900 text-red-200' },
+    { id: 2, name: 'feature', color: 'bg-blue-900 text-blue-200' },
+    { id: 3, name: 'enhancement', color: 'bg-green-900 text-green-200' }
+  ]);  const [openAccordions, setOpenAccordions] = useState({
     details: true,
     timeTracking: true,
     activity: true,
-    labels: true,
+    labels: true
   });
 
   const [column, setColumn] = useState(initialColumn || "todo");
@@ -221,6 +228,19 @@ const Card = ({ title: initialTitle, id, initialColumn, onStatusChange }) => {
     setColumn(newStatus);
     if (onStatusChange) {
       onStatusChange(id, newStatus);
+    }
+  };
+
+  const handleAddLabel = () => {
+    if (newLabelName.trim()) {
+      const newLabel = {
+        id: Date.now(),
+        name: newLabelName.trim(),
+        color: selectedColor
+      };
+      setLabels([...labels, newLabel]);
+      setNewLabelName('');
+      setIsAddingLabel(false);
     }
   };
 
@@ -445,45 +465,87 @@ const Card = ({ title: initialTitle, id, initialColumn, onStatusChange }) => {
                     </div>
                   )}
                 </div>
-
                 {/* Labels Accordion */}
                 <div className="mb-4">
                   <button
                     onClick={() => toggleAccordion("labels")}
                     className="w-full flex items-center justify-between p-2 hover:bg-neutral-700 rounded"
                   >
-                    <span className="text-sm font-medium text-neutral-200">
-                      Labels
-                    </span>
+                    <span className="text-sm font-medium text-neutral-200">Labels</span>
                     <span>
                       {openAccordions.labels ? (
-                        <span class="material-symbols-outlined">
-                        keyboard_arrow_down
-                        </span>
+                        <span class="material-symbols-outlined">keyboard_arrow_down</span>
                       ) : (
-                        <span class="material-symbols-outlined text-sm">
-                          arrow_forward_ios
-                        </span>
+                        <span class="material-symbols-outlined text-sm">arrow_forward_ios</span>
                       )}
                     </span>
                   </button>
                   {openAccordions.labels && (
-                    <div className="p-2 flex flex-wrap gap-2">
-                      <span className="px-2 py-1 text-xs rounded bg-blue-900 text-blue-200">
-                        frontend
-                      </span>
-                      <span className="px-2 py-1 text-xs rounded bg-green-900 text-green-200">
-                        bug
-                      </span>
-                      <button className="px-2 py-1 text-xs rounded border border-dashed border-neutral-600 text-neutral-400 hover:border-neutral-400">
-                        + Add Label
-                      </button>
+                    <div className="p-2">
+                      <div className="flex flex-wrap gap-2 mb-3">
+                        {labels.map(label => (
+                          <span 
+                            key={label.id}
+                            className={`px-2 py-1 text-xs rounded flex items-center gap-2 ${label.color}`}
+                          >
+                            {label.name}
+                            <button 
+                              onClick={() => setLabels(labels.filter(l => l.id !== label.id))}
+                              className="hover:text-white text-xs font-medium"
+                            >
+                              ×
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                      
+                      {isAddingLabel ? (
+                        <div className="mt-2 p-3 bg-neutral-700 rounded-md">
+                          <input
+                            type="text"
+                            value={newLabelName}
+                            onChange={(e) => setNewLabelName(e.target.value)}
+                            placeholder="Label name..."
+                            className="w-full bg-neutral-800 text-sm px-2 py-1 rounded mb-2 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                handleAddLabel()
+                              }
+                            }}
+                          />
+                          <div className="flex gap-2">
+                            <div className="flex flex-wrap gap-1">
+                              {[
+                                'bg-red-900 text-red-200',
+                                'bg-blue-900 text-blue-200',
+                                'bg-green-900 text-green-200',
+                                'bg-yellow-900 text-yellow-200',
+                                'bg-purple-900 text-purple-200'
+                              ].map(color => (
+                                <button 
+                                  key={color}
+                                  onClick={() => setSelectedColor(color)}
+                                  className={`w-4 h-4 rounded-full ${color.split(' ')[0]} ${
+                                    selectedColor === color ? 'ring-2 ring-white' : ''
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <button 
+                          onClick={() => setIsAddingLabel(true)}
+                          className="w-full px-2 py-1 text-xs rounded border border-dashed border-neutral-600 text-neutral-400 hover:border-neutral-400 hover:text-neutral-300"
+                        >
+                          + Add Label
+                        </button>
+                      )}
                     </div>
                   )}
                 </div>
+                </div>
               </div>
-            </div>
-
             {/* Footer stays fixed at bottom */}
             <div className="flex-shrink-0 mt-4 pt-4 border-t border-neutral-700">
               <button
